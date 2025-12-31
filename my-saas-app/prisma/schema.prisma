@@ -1,0 +1,329 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------
+// 👤 1. Client (الطبيب / المستخدم للنظام)
+// ---------------------------------------------------------
+model Client {
+  id                  String    @id @default(uuid())
+  email               String    @unique
+  password            String
+  doctorName          String
+  clinicName          String?
+  role                String    @default("Doctor") // Doctor, Admin
+  status              String    @default("Active")
+  plan                String    @default("Free")
+  specialty  String?  // التخصص (اختياري)
+  onboardingCompleted Boolean   @default(false)
+  prescriptions Prescription[]
+  phone     String?  // الهاتف
+  address   String?  // العنوان
+  city      String?  // المدينة
+  
+  nextPaymentDate     DateTime?
+  lastPaymentDate     DateTime?
+  createdAt           DateTime  @default(now())
+
+  // العلاقات (ماذا يملك الطبيب؟)
+  patients            Patient[]
+  appointments        Appointment[]
+  invoices            Invoice[]
+  
+  subscriptions       SubscriptionPayment[]
+  notifications       Notification[]
+  
+  // علاقة 1-1 مع ملف الإعدادات
+  onboardingProfile   OnboardingProfile?
+  clinicProfile       ClinicProfile?
+  
+  documents Document[]
+  // ... الحقول السابقة ...
+  subscriptionStatus String @default("INACTIVE") // ACTIVE, INACTIVE, PENDING
+  paymentRequests    PaymentRequest[]
+  supportMessages SupportMessage[]
+  // ACTIVE, INACTIVE
+  subscriptionEndsAt DateTime?  // 👈 هذا هو تاريخ الانتهاء الدقيق
+  
+  
+}
+
+// ---------------------------------------------------------
+// 🏥 2. Patient (المريض)
+// ---------------------------------------------------------
+model Patient {
+  id          String   @id @default(uuid())
+  firstName   String
+  lastName    String
+  
+  // معلومات التواصل
+  email       String?
+  phone       String?
+  cin         String?
+  address     String?
+  city        String?
+  emergencyName  String?
+  emergencyPhone String?
+  notes       String?
+
+  // المعلومات الطبية (التي كانت خطأً في موديل Client)
+  birthDate   DateTime?
+  gender      String?
+  bloodType   String?
+  allergies   String?
+  chronicDiseases String?
+  currentMedications String?
+
+  status      String   @default("Active")
+  
+  // الرابط مع الطبيب
+  clientId    String
+  client      Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  // علاقات المريض
+  appointments     Appointment[]
+  patientDocuments PatientDocument[] 
+  invoices         Invoice[]
+
+  createdAt   DateTime @default(now())
+documents Document[]
+prescriptions Prescription[]
+  
+}
+model SystemSetting {
+  key   String @id  // مثال: "BANK_RIB", "BANK_NAME"
+  value String
+}
+model PaymentRequest {
+  id        String   @id @default(uuid())
+  amount    Float
+  receiptUrl String? // رابط صورة الوصل
+  status    String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  method    String   @default("BANK_TRANSFER")
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  clientId  String
+  client    Client   @relation(fields: [clientId], references: [id])
+}
+
+// ---------------------------------------------------------
+// 📅 3. Appointment (المواعيد)
+// ---------------------------------------------------------
+model Appointment {
+  id        String   @id @default(uuid())
+  date      DateTime
+  type      String
+  status    String   @default("Scheduled")
+  notes     String?
+  price     Float    @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  clientId  String
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  patientId String
+  patient   Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+}
+
+// ---------------------------------------------------------
+// 📂 4. PatientDocument (المستندات)
+// ---------------------------------------------------------
+model PatientDocument {
+  id        String   @id @default(uuid())
+  name      String
+  url       String
+  tags      String?
+  createdAt DateTime @default(now())
+
+  patientId String
+  patient   Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+}
+
+// ---------------------------------------------------------
+// 💰 5. Invoice (الفواتير)
+// ---------------------------------------------------------
+model Invoice {
+  id        String   @id @default(uuid())
+  amount    Float
+  status    String   @default("Pending") // Paid, Pending, Cancelled
+  date      DateTime @default(now())
+  
+  clientId  String
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  patientId String
+  patient   Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+}
+
+// ---------------------------------------------------------
+model SupportMessage {
+  id        String   @id @default(uuid())
+  phone     String?  // اختياري (لأن الطبيب المسجل بياناته عندنا)
+  message   String
+  status    String   @default("PENDING")
+  createdAt DateTime @default(now())
+
+  // ✅ نعيد العلاقة لكن نجعلها اختيارية (Optional)
+  clientId  String?  // لاحظ علامة الاستفهام ؟
+  client    Client?  @relation(fields: [clientId], references: [id])
+}
+// 💳 7. Subscription (اشتراكات الطبيب)
+// ---------------------------------------------------------
+model SubscriptionPayment {
+  id        String   @id @default(uuid())
+  amount    Float
+  period    String
+  status    String   @default("Pending")
+  proofUrl  String?
+  date      DateTime @default(now())
+  
+  clientId  String
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+}
+
+// ---------------------------------------------------------
+// 🔔 8. Notification (الإشعارات)
+// ---------------------------------------------------------
+model Notification {
+  id        String   @id @default(uuid())
+  title     String
+  message   String
+  type      String
+  isRead    Boolean  @default(false)
+  link      String?
+  createdAt DateTime @default(now())
+  
+  clientId  String
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+}
+
+// ---------------------------------------------------------
+// ⚙️ 9. Settings (الإعدادات العامة وإعدادات البداية)
+// ---------------------------------------------------------
+
+// إعدادات الأدمن العامة (SaaS)
+model SaasSettings {
+  id           String   @id @default("config")
+  monthlyPrice Float    @default(50.0)
+  yearlyPrice  Float    @default(500.0)
+  bankName     String   @default("CIH Bank")
+  accountName  String   @default("Admin")
+  rib          String   @default("0000 0000 0000 0000")
+  trialDays    Int      @default(7)
+  updatedAt    DateTime @updatedAt
+}
+
+// سجلات النظام
+model SystemLog {
+  id        String   @id @default(uuid())
+  action    String
+  details   String
+  actor     String
+  createdAt DateTime @default(now())
+}
+
+// إعدادات العيادة (Onboarding)
+model OnboardingProfile {
+  id       String @id @default(uuid())
+  clientId String @unique
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  // 1. معلومات
+  specialty   String?
+  phoneNumber String?
+  city        String?
+  teamSize    String?
+
+  // 2. طريقة العمل
+  appointmentSystem String?
+  dailyPatients     String?
+  patientReminders  Boolean @default(false)
+
+  // 3. الملفات والفوترة
+  storeMedicalFiles Boolean @default(false)
+  fileTypes         String?
+  billingEnabled    Boolean @default(false)
+  paymentMethods    String?
+
+  // 4. الفريق والإعدادات
+  hasAssistants        Boolean @default(false)
+  assistantsCount      Int     @default(0)
+  assistantPermissions String?
+  
+  language String @default("fr")
+  currency String @default("MAD")
+  mainProblem String?
+
+  createdAt DateTime @default(now())
+}
+
+// إعدادات بروفايل العيادة (للون والطباعة)
+model ClinicProfile {
+  id        String   @id @default(uuid())
+  settings  String   // JSON string storing { color, printHeader, etc }
+  
+  clientId  String   @unique
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+}
+
+// أضف هذا الموديل الجديد في النهاية
+model Document {
+  id        String   @id @default(uuid())
+  name      String   // اسم الملف (مثلاً: X-Ray Report)
+  type      String   // نوع الملف (PDF, JPG, PNG)
+  url       String   // رابط الملف (سنستخدم رابط وهمي حالياً)
+  
+  patientId String
+  patient   Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  
+  clientId  String
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+}
+model Prescription {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  
+  // سنخزن الأدوية على شكل نص JSON لتسهيل التعامل معها
+  // مثال: [{"name": "Panadol", "dose": "500mg", "freq": "3x Daily"}]
+  medications String   
+  
+  notes     String?  // ملاحظات إضافية
+
+  patientId String
+  patient   Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  clientId  String
+  client    Client  @relation(fields: [clientId], references: [id])
+}
+
+
+// أضف هذا الجدول في نهاية الملف
+model SystemSettings {
+  id          String   @id @default(uuid())
+  
+  // إعدادات الاشتراك
+  monthlyPrice Float    @default(300)
+  currency     String   @default("MAD")
+
+  // إعدادات البنك (طريقة الدفع)
+  bankName     String   @default("CIH Bank")
+  rib          String   @default("0000 1111 2222 3333 4444")
+  accountName  String   @default("My SaaS Company")
+// ✅ طريقة الدفع 2 (الجديدة - اختيارية)
+  extraMethodName   String   @default("") // مثلاً: Cash Plus
+  extraMethodNumber String   @default("") // مثلاً: رقم الهاتف
+  extraMethodOwner  String   @default("") // اسم المستلم
+  paymentNote       String   @default("")
+  updatedAt    DateTime @updatedAt
+}
