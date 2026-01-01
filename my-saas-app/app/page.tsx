@@ -1,25 +1,14 @@
 import Link from "next/link";
-import { db } from "@/lib/db"; // ✅ قمنا بتفعيل الاتصال بقاعدة البيانات
 import { 
   Stethoscope, ArrowRight, CheckCircle, Activity, 
   Printer, ShieldCheck, Star, PlayCircle 
 } from "lucide-react";
 
-export default async function LandingPage() {
+export default function LandingPage() {
   
-  // 1. محاولة جلب الإعدادات الحقيقية من قاعدة البيانات
-  let settings = null;
-  
-  try {
-    settings = await db.saasSettings.findUnique({ 
-      where: { id: "config" } // نفترض أن معرف الإعدادات هو "config"
-    });
-  } catch (error) {
-    console.log("Database not ready yet, using defaults.");
-  }
-
-  // 2. استخدام الإعدادات الحقيقية أو الافتراضية إذا لم توجد
-  const config = settings || { monthlyPrice: 50, trialDays: 20 };
+  // ✅ وضعنا الأرقام هنا مباشرة ليعمل الموقع فوراً بدون انتظار قاعدة البيانات
+  // سنقوم بربطها لاحقاً بعد أن نتأكد أن الصفحة فتحت
+  const config = { monthlyPrice: 99, trialDays: 30 };
 
   return (
     <div className="flex flex-col min-h-screen bg-white dark:bg-slate-950 transition-colors duration-300">
