@@ -1,44 +1,58 @@
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
-import PrintButton from "@/components/PrintButton"; // سننشئ هذا الزر لاحقاً
+import { Printer } from "lucide-react"; // سنستخدم أيقونة بدلاً من المكون المفقود
 
-export default async function PrintPrescriptionPage({ params }: { params: { id: string } }) {
+export default async function PrescriptionPage({ params }: { params: { patientId: string; id: string } }) {
   const { id } = await params;
-  
-  // جلب الوصفة + المريض + معلومات العيادة (من الإعدادات)
+
+  // 1. جلب الوصفة مع المريض
   const prescription = await db.prescription.findUnique({
     where: { id },
     include: { patient: true }
   });
 
-  const settings = await db.clinicProfile.findUnique({
-    where: { id: "settings" } // نفترض أننا سجلنا إعدادات العيادة
+  if (!prescription) return notFound();
+
+  // 2. جلب معلومات الطبيب (العميل) بناءً على المريض
+  // نستخدم جدول Client بدلاً من Settings أو ClinicProfile غير الموجودة
+  const doctor = await db.client.findUnique({
+    where: { id: prescription.patient.clientId }
   });
 
-  if (!prescription) return notFound();
+  // 3. معالجة الأدوية (لتجنب الأخطاء إذا كانت فارغة)
+  // نستخدم (as any) لتجاوز اختلاف التسمية بين medicines و medications
+  const rawMedicines = (prescription as any).medicines || (prescription as any).medications || "";
+  const medicineList = rawMedicines.split('\n').filter((line: string) => line.trim() !== "");
 
   return (
     <div className="min-h-screen bg-slate-200 p-8 flex flex-col items-center">
       
-      {/* زر الطباعة (يختفي عند الطباعة) */}
+      {/* زر الطباعة (مدمج مباشرة لتجنب أخطاء الاستيراد) */}
       <div className="mb-6 print:hidden">
-         <PrintButton />
+        <button 
+          onClick={() => typeof window !== 'undefined' && window.print()} // حل بسيط للطباعة
+          className="flex items-center gap-2 bg-blue-600 text-white px-6 py-2 rounded-full font-bold shadow-lg hover:bg-blue-700 transition-all"
+        >
+          <Printer className="w-5 h-5" /> Print Prescription
+        </button>
       </div>
 
       {/* --- ورقة A4 (التي ستطبع) --- */}
-      <div className="bg-white w-[210mm] min-h-[297mm] p-[20mm] shadow-2xl print:shadow-none print:w-full relative text-slate-900">
+      <div className="bg-white w-[210mm] min-h-[297mm] p-[20mm] shadow-2xl print:shadow-none print:w-full relative text-slate-900 print:absolute print:top-0 print:left-0">
         
         {/* Header: معلومات الطبيب */}
         <div className="flex justify-between items-start border-b-2 border-slate-900 pb-6 mb-8">
           <div>
-            <h1 className="text-2xl font-bold uppercase tracking-wider">{settings?.name || "Dr. Ahmed Benali"}</h1>
-            <p className="text-sm font-medium mt-1">General Medicine & Surgery</p>
-            <p className="text-xs text-slate-500 mt-1">INPE: 12345678</p>
+            <h1 className="text-2xl font-bold uppercase tracking-wider text-slate-900">
+                {doctor?.doctorName || "Dr. Medical"}
+            </h1>
+            <p className="text-sm font-medium mt-1 text-slate-600">General Medicine & Surgery</p>
+            <p className="text-xs text-slate-400 mt-1">ID: {doctor?.id.slice(0, 8)}</p>
           </div>
           <div className="text-right text-sm text-slate-600 space-y-1">
-            <p>{settings?.address || "123 Medical Blvd, Casablanca"}</p>
-            <p>{settings?.phone || "05 22 00 00 00"}</p>
-            <p>{settings?.email || "doctor@clinic.com"}</p>
+            <p>{doctor?.clinicName || "My Clinic"}</p>
+            <p>{doctor?.phone || "+212 600..."}</p>
+            <p>{(doctor as any)?.email || ""}</p>
           </div>
         </div>
 
@@ -46,48 +60,45 @@ export default async function PrintPrescriptionPage({ params }: { params: { id: 
         <div className="flex justify-between items-end mb-12">
           <div className="text-sm">
             <span className="text-slate-500 block mb-1">Patient:</span>
-            <span className="font-bold text-lg">{prescription.patient.firstName} {prescription.patient.lastName}</span>
-            <span className="block text-slate-400 text-xs mt-1">Age: {new Date().getFullYear() - 2000} Years</span> 
-            {/* (سنقوم بحساب العمر الحقيقي لاحقاً) */}
+            <span className="font-bold text-xl uppercase">{prescription.patient.firstName} {prescription.patient.lastName}</span>
+            <span className="block text-slate-400 text-xs mt-1">
+                Age: {prescription.patient.birthDate ? new Date().getFullYear() - new Date(prescription.patient.birthDate).getFullYear() : "--"} Years
+            </span> 
           </div>
           <div className="text-right">
-            <p className="text-slate-500 text-sm">Date: <span className="font-bold text-slate-900">{prescription.createdAt.toLocaleDateString()}</span></p>
-            <p className="text-slate-500 text-sm">City: <span className="font-bold text-slate-900">Casablanca</span></p>
+            <p className="text-slate-500 text-sm">Date: <span className="font-bold text-slate-900">{new Date(prescription.createdAt).toLocaleDateString()}</span></p>
+            <p className="text-slate-500 text-sm">City: <span className="font-bold text-slate-900">Agadir</span></p>
           </div>
         </div>
 
         {/* --- ORDONNANCE --- */}
         <div className="mb-8 text-center">
-          <h2 className="text-3xl font-serif font-bold italic border-b border-slate-300 inline-block px-8 pb-2">Ordonnance</h2>
+          <h2 className="text-4xl font-serif font-bold italic border-b-2 border-slate-900 inline-block px-12 pb-2 tracking-widest">ORDONNANCE</h2>
         </div>
 
         {/* الأدوية */}
         <div className="space-y-6 font-medium text-lg leading-relaxed px-4 min-h-[400px]">
-          {/* تحويل النص إلى أسطر */}
-          {prescription.medications.split('\n').map((line, index) => (
-            <div key={index} className="flex gap-3">
-              <span className="font-bold text-slate-400 text-sm mt-1">{index + 1}.</span>
-              <span>{line}</span>
-            </div>
-          ))}
+          {medicineList.length > 0 ? (
+            medicineList.map((line: string, index: number) => (
+              <div key={index} className="flex gap-4 items-start">
+                <span className="font-bold text-slate-400 text-sm mt-1 min-w-[20px]">{index + 1}.</span>
+                <span className="text-slate-800">{line}</span>
+              </div>
+            ))
+          ) : (
+             <p className="text-slate-400 italic">No medications listed.</p>
+          )}
         </div>
 
-        {/* ملاحظات */}
-        {prescription.notes && (
-            <div className="mt-8 p-4 bg-slate-50 rounded-lg border border-slate-100 text-sm text-slate-600 italic">
-                <strong>Note:</strong> {prescription.notes}
-            </div>
-        )}
-
         {/* Footer: التوقيع */}
-        <div className="absolute bottom-[30mm] right-[30mm] text-center">
-          <p className="text-sm font-bold text-slate-400 mb-16">Signature & Cachet</p>
+        <div className="absolute bottom-[40mm] right-[30mm] text-center">
+          <p className="text-sm font-bold text-slate-400 mb-20">Signature & Cachet</p>
           <div className="w-48 h-0.5 bg-slate-900/20"></div>
         </div>
 
         {/* Footer Info */}
-        <div className="absolute bottom-4 left-0 w-full text-center text-[10px] text-slate-400">
-           Generated by MyClinic.pro System
+        <div className="absolute bottom-8 left-0 w-full text-center border-t border-slate-100 pt-4">
+           <p className="text-[10px] text-slate-400 uppercase tracking-widest">Generated by MySaas Doctor System</p>
         </div>
 
       </div>
