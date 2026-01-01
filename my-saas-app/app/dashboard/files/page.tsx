@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { getClientId, uploadFile } from "@/app/actions"; // تأكد أن uploadFile موجودة في actions
+import { getClientId } from "@/app/actions";
 import { redirect } from "next/navigation";
 import { Folder, FileText, ExternalLink, User } from "lucide-react";
 
@@ -7,7 +7,6 @@ export default async function FilesPage() {
   const clientId = await getClientId();
   if (!clientId) redirect("/login");
 
-  // ✅ تم التصحيح: استخدام patientDocument بدلاً من clinicFile
   const files = await db.patientDocument.findMany({
     where: { 
       patient: { clientId: clientId } 
@@ -31,19 +30,25 @@ export default async function FilesPage() {
           </div>
         ) : (
           files.map((file) => (
-            <div key={file.id} className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all">
-               <div className="flex items-start justify-between mb-4">
-                  <div className="p-3 bg-orange-100 text-orange-600 rounded-lg">
-                    <FileText className="w-6 h-6" />
-                  </div>
-                  <span className="text-[10px] font-bold bg-slate-100 px-2 py-1 rounded text-slate-600">{file.type || 'DOC'}</span>
-               </div>
+            <div key={file.id} className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all flex flex-col justify-between h-full">
                
-               <h3 className="font-bold text-slate-900 truncate">{file.name}</h3>
-               
-               <div className="flex items-center gap-2 text-xs text-slate-500 mt-2 mb-4">
-                  <User className="w-3 h-3" /> 
-                  {file.patient.firstName} {file.patient.lastName}
+               <div>
+                 <div className="flex items-start justify-between mb-4">
+                    <div className="p-3 bg-orange-100 text-orange-600 rounded-lg">
+                      <FileText className="w-6 h-6" />
+                    </div>
+                    {/* حل مشكلة النوع باستخدام as any مؤقتاً */}
+                    <span className="text-[10px] font-bold bg-slate-100 px-2 py-1 rounded text-slate-600"> 
+                      {(file as any).type || 'DOC'} 
+                    </span>
+                 </div>
+                 
+                 <h3 className="font-bold text-slate-900 truncate mb-2">{file.name}</h3>
+                 
+                 <div className="flex items-center gap-2 text-xs text-slate-500 mb-6">
+                    <User className="w-3 h-3" /> 
+                    {file.patient.firstName} {file.patient.lastName}
+                 </div>
                </div>
 
                <a 
