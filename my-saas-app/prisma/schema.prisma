@@ -129,8 +129,9 @@ model Appointment {
 
   clientId  String
   client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
-invoice   Invoice?
+
   patientId String
+  invoices  Invoice[]
   patient   Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
 }
 

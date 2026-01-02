@@ -7,15 +7,14 @@ export default async function DashboardPage() {
   const clientId = await getClientId();
   if (!clientId) redirect("/login");
 
-  // 1. التحقق من العميل وجلب العملة
+  // 1. التحقق من العميل
   const client = await db.client.findUnique({ where: { id: clientId } });
   if (!client) redirect("/login");
   
-  // ✅ جلب العملة (ستظهر $ أو USD إذا قمت بتغييرها في الداتابيس)
   const currency = client.currency || "MAD"; 
 
   // ---------------------------------------------------------
-  // 📊 2. الإحصائيات العلوية (Stats)
+  // 📊 الإحصائيات (Stats)
   // ---------------------------------------------------------
   const totalPatients = await db.patient.count({ where: { clientId } });
   const totalAppointments = await db.appointment.count({ where: { clientId } });
@@ -27,7 +26,7 @@ export default async function DashboardPage() {
   const totalRevenue = revenueData._sum.amount || 0;
 
   // ---------------------------------------------------------
-  // 📈 3. بيانات الرسم البياني (Billing Summary - Last 30 Days)
+  // 📈 الرسم البياني (Billing Chart)
   // ---------------------------------------------------------
   const today = new Date();
   const lastMonth = new Date(today);
@@ -45,11 +44,8 @@ export default async function DashboardPage() {
   for (let i = 0; i < 30; i++) {
     const d = new Date(today);
     d.setDate(today.getDate() - (29 - i));
-    
-    // تنسيق التاريخ يوم/شهر
     const dateStr = d.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' });
     
-    // جمع فواتير هذا اليوم
     const dailySum = monthlyInvoices
       .filter(inv => new Date(inv.date).toDateString() === d.toDateString())
       .reduce((sum, inv) => sum + inv.amount, 0);
@@ -58,14 +54,13 @@ export default async function DashboardPage() {
   }
 
   // ---------------------------------------------------------
-  // 🍩 4. بيانات الرسم الدائري (Capacity Status)
+  // 🍩 الرسم الدائري (Pie Chart)
   // ---------------------------------------------------------
   const scheduledCount = await db.appointment.count({ where: { clientId, status: "SCHEDULED" } });
   const completedCount = await db.appointment.count({ where: { clientId, status: "COMPLETED" } });
   const cancelledCount = await db.appointment.count({ where: { clientId, status: "CANCELLED" } });
   
   const hasData = scheduledCount + completedCount + cancelledCount > 0;
-  
   const capacityChartData = hasData ? [
     { name: 'Scheduled', value: scheduledCount, color: '#3B82F6' },
     { name: 'Completed', value: completedCount, color: '#22C55E' },
@@ -75,32 +70,39 @@ export default async function DashboardPage() {
   ];
 
   // ---------------------------------------------------------
-  // 📅 5. المواعيد الأخيرة (Recent Appointments)
+  // 📅 جدول المواعيد (هنا كان مكان الخطأ)
   // ---------------------------------------------------------
   const recentAppointments = await db.appointment.findMany({
     where: { clientId },
     take: 5,
     orderBy: { date: 'desc' },
+    // 👇 هذا الجزء (include) هو الذي يحل مشكلة "property patient does not exist"
     include: { 
-      // ✅ نحن نستخدم (patient) المفرد لأن رسالة الخطأ السابقة أكدت ذلك
-      patient: true,
-      // ✅ نحن نستخدم (invoice) المفرد لأننا افترضنا أنك أصلحت الـ Schema
-      // إذا لم تصلح الـ Schema، احذف هذا السطر مؤقتاً ليعمل الكود
-      invoice: true 
+      patient: true, // ✅ ضروري جداً لجلب اسم المريض
+      invoices: true // ✅ ضروري لجلب السعر من الفاتورة
     }
   });
 
-  const formattedAppointments = recentAppointments.map(apt => ({
-    ...apt,
-    patient: {
-      ...apt.patient,
-      firstName: apt.patient.firstName || "Unknown",
-      lastName: apt.patient.lastName || "",
-    },
-    // ✅ جلب السعر (40) من الفاتورة المرتبطة
-    fees: apt.invoice?.amount || 0,
-    billingStatus: apt.invoice?.status || "Unbilled"
-  }));
+  const formattedAppointments = recentAppointments.map(apt => {
+    // التعامل مع الفاتورة (لأنها مصفوفة invoices)
+    const linkedInvoice = (apt.invoices && apt.invoices.length > 0) ? apt.invoices[0] : null;
+
+    return {
+      ...apt,
+      // بما أننا وضعنا include: { patient: true }، فالآن apt.patient موجودة
+      patient: {
+        ...apt.patient,
+        firstName: apt.patient.firstName || "Unknown",
+        lastName: apt.patient.lastName || "",
+      },
+      
+      // السعر من الفاتورة
+      fees: linkedInvoice ? linkedInvoice.amount : 0,
+      
+      // الحالة من الفاتورة
+      billingStatus: linkedInvoice ? linkedInvoice.status : "Unbilled"
+    };
+  });
 
   return (
     <DashboardView 

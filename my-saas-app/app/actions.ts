@@ -236,7 +236,6 @@ export async function createAppointment(formData: FormData) {
   const type = formData.get("type")?.toString();
   const notes = formData.get("notes")?.toString();
   
-  // قراءة السعر
   const priceRaw = formData.get("price")?.toString();
   const price = priceRaw ? parseFloat(priceRaw) : 0;
 
@@ -248,14 +247,14 @@ export async function createAppointment(formData: FormData) {
         date: new Date(date),
         type: type || "Consultation",
         notes: notes || "",
-        status: "Scheduled", // الحالة الافتراضية للموعد
+        status: "Scheduled",
         
-        // 👇 السحر هنا: إنشاء فاتورة مرتبطة بالموعد تلقائياً
-        invoice: {
-            create: {
-                amount: price,       // المبلغ (40 مثلاً)
-                status: "PENDING",   // تبدأ غير مدفوعة (أو اجعلها PAID إذا أردت)
-                clientId: clientId,  // ربطها بالطبيب لتظهر في الداشبورد
+        // 👇 التغيير هنا: استخدمنا (invoices) بصيغة الجمع
+        invoices: { 
+            create: { // Prisma ذكي، سيفهم أنك تريد إنشاء فاتورة واحدة وإضافتها للقائمة
+                amount: price,
+                status: "PENDING",
+                clientId: clientId,
                 patientId: patientId,
                 date: new Date()
             }
