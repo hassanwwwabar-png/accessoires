@@ -236,6 +236,7 @@ export async function createAppointment(formData: FormData) {
   const type = formData.get("type")?.toString();
   const notes = formData.get("notes")?.toString();
   
+  // 1. نقرأ السعر من الفورم لاستخدامه في الفاتورة فقط
   const priceRaw = formData.get("price")?.toString();
   const price = priceRaw ? parseFloat(priceRaw) : 0;
 
@@ -249,10 +250,12 @@ export async function createAppointment(formData: FormData) {
         notes: notes || "",
         status: "Scheduled",
         
-        // 👇 التغيير هنا: استخدمنا (invoices) بصيغة الجمع
+        // ❌ لاحظ: قمنا بحذف سطر (price: price) من هنا نهائياً
+        
+        // ✅ ونستخدمه هنا فقط لإنشاء الفاتورة
         invoices: { 
-            create: { // Prisma ذكي، سيفهم أنك تريد إنشاء فاتورة واحدة وإضافتها للقائمة
-                amount: price,
+            create: {
+                amount: price, // السعر يذهب للفاتورة فقط
                 status: "PENDING",
                 clientId: clientId,
                 patientId: patientId,

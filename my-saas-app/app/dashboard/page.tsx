@@ -7,18 +7,20 @@ export default async function DashboardPage() {
   const clientId = await getClientId();
   if (!clientId) redirect("/login");
 
-  // 1. التحقق من العميل
+  // 1. التحقق من العميل وجلب العملة
   const client = await db.client.findUnique({ where: { id: clientId } });
   if (!client) redirect("/login");
   
+  // ✅ جلب العملة (ستظهر $ أو USD إذا قمت بتغييرها في الداتابيس)
   const currency = client.currency || "MAD"; 
 
   // ---------------------------------------------------------
-  // 📊 الإحصائيات (Stats)
+  // 📊 2. الإحصائيات العلوية (Stats)
   // ---------------------------------------------------------
   const totalPatients = await db.patient.count({ where: { clientId } });
   const totalAppointments = await db.appointment.count({ where: { clientId } });
   
+  // حساب المداخيل فقط من الفواتير المدفوعة (PAID)
   const revenueData = await db.invoice.aggregate({
     where: { clientId, status: "PAID" },
     _sum: { amount: true }
@@ -26,7 +28,7 @@ export default async function DashboardPage() {
   const totalRevenue = revenueData._sum.amount || 0;
 
   // ---------------------------------------------------------
-  // 📈 الرسم البياني (Billing Chart)
+  // 📈 3. بيانات الرسم البياني (Billing Summary - Last 30 Days)
   // ---------------------------------------------------------
   const today = new Date();
   const lastMonth = new Date(today);
@@ -44,8 +46,11 @@ export default async function DashboardPage() {
   for (let i = 0; i < 30; i++) {
     const d = new Date(today);
     d.setDate(today.getDate() - (29 - i));
+    
+    // تنسيق التاريخ يوم/شهر
     const dateStr = d.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' });
     
+    // جمع فواتير هذا اليوم
     const dailySum = monthlyInvoices
       .filter(inv => new Date(inv.date).toDateString() === d.toDateString())
       .reduce((sum, inv) => sum + inv.amount, 0);
@@ -54,13 +59,14 @@ export default async function DashboardPage() {
   }
 
   // ---------------------------------------------------------
-  // 🍩 الرسم الدائري (Pie Chart)
+  // 🍩 4. بيانات الرسم الدائري (Capacity Status)
   // ---------------------------------------------------------
   const scheduledCount = await db.appointment.count({ where: { clientId, status: "SCHEDULED" } });
   const completedCount = await db.appointment.count({ where: { clientId, status: "COMPLETED" } });
   const cancelledCount = await db.appointment.count({ where: { clientId, status: "CANCELLED" } });
   
   const hasData = scheduledCount + completedCount + cancelledCount > 0;
+  
   const capacityChartData = hasData ? [
     { name: 'Scheduled', value: scheduledCount, color: '#3B82F6' },
     { name: 'Completed', value: completedCount, color: '#22C55E' },
@@ -70,36 +76,38 @@ export default async function DashboardPage() {
   ];
 
   // ---------------------------------------------------------
-  // 📅 جدول المواعيد (هنا كان مكان الخطأ)
+  // 📅 5. المواعيد الأخيرة (الحل النهائي للسعر) 🕵️‍♂️
   // ---------------------------------------------------------
   const recentAppointments = await db.appointment.findMany({
     where: { clientId },
     take: 5,
     orderBy: { date: 'desc' },
-    // 👇 هذا الجزء (include) هو الذي يحل مشكلة "property patient does not exist"
     include: { 
-      patient: true, // ✅ ضروري جداً لجلب اسم المريض
-      invoices: true // ✅ ضروري لجلب السعر من الفاتورة
+      // ✅ 1. نجلب بيانات المريض
+      patient: true, 
+      
+      // ✅ 2. نجلب الفواتير (invoices) بصيغة الجمع كما هي في الـ Schema
+      invoices: true 
     }
   });
 
   const formattedAppointments = recentAppointments.map(apt => {
-    // التعامل مع الفاتورة (لأنها مصفوفة invoices)
+    // 👇 المنطق الجديد:
+    // الموعد لديه قائمة فواتير (invoices)، نأخذ أول واحدة منها
     const linkedInvoice = (apt.invoices && apt.invoices.length > 0) ? apt.invoices[0] : null;
 
     return {
       ...apt,
-      // بما أننا وضعنا include: { patient: true }، فالآن apt.patient موجودة
       patient: {
         ...apt.patient,
         firstName: apt.patient.firstName || "Unknown",
         lastName: apt.patient.lastName || "",
       },
       
-      // السعر من الفاتورة
+      // ✅ السعر يأتي من الفاتورة حصراً (وإلا فهو 0)
       fees: linkedInvoice ? linkedInvoice.amount : 0,
       
-      // الحالة من الفاتورة
+      // ✅ الحالة تأتي من الفاتورة حصراً
       billingStatus: linkedInvoice ? linkedInvoice.status : "Unbilled"
     };
   });
