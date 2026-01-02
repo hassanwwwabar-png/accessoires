@@ -25,7 +25,7 @@ model Client {
   address   String?  // العنوان
   city      String?  // المدينة
   messages   Message[] 
-  
+  currency String @default("MAD")
   nextPaymentDate     DateTime?
   lastPaymentDate     DateTime?
   createdAt           DateTime  @default(now())
@@ -60,7 +60,7 @@ model Patient {
   id          String   @id @default(uuid())
   firstName   String
   lastName    String
-  
+  currency            String    @default("MAD")
   // معلومات التواصل
   email       String?
   phone       String?
@@ -129,7 +129,7 @@ model Appointment {
 
   clientId  String
   client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
-
+invoice   Invoice?
   patientId String
   patient   Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
 }
@@ -172,6 +172,10 @@ model Invoice {
   
   patientId String
   patient   Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+// ✅ أضف هذين السطرين ليعرف الفاتورة تابعة لأي موعد
+  appointmentId String?      @unique
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id])
+
 }
 
 // ---------------------------------------------------------

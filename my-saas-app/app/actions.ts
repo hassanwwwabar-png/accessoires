@@ -227,7 +227,6 @@ export async function createPatient(formData: FormData) {
   revalidatePath("/dashboard/patients");
   redirect("/dashboard/patients");
 }
-
 export async function createAppointment(formData: FormData) {
   const clientId = await getClientId();
   if (!clientId) return;
@@ -237,7 +236,7 @@ export async function createAppointment(formData: FormData) {
   const type = formData.get("type")?.toString();
   const notes = formData.get("notes")?.toString();
   
-  // 👇 قراءة السعر من الفورم
+  // قراءة السعر
   const priceRaw = formData.get("price")?.toString();
   const price = priceRaw ? parseFloat(priceRaw) : 0;
 
@@ -249,39 +248,22 @@ export async function createAppointment(formData: FormData) {
         date: new Date(date),
         type: type || "Consultation",
         notes: notes || "",
-        status: "Scheduled",
-        price: price // 👈 حفظ السعر
+        status: "Scheduled", // الحالة الافتراضية للموعد
+        
+        // 👇 السحر هنا: إنشاء فاتورة مرتبطة بالموعد تلقائياً
+        invoice: {
+            create: {
+                amount: price,       // المبلغ (40 مثلاً)
+                status: "PENDING",   // تبدأ غير مدفوعة (أو اجعلها PAID إذا أردت)
+                clientId: clientId,  // ربطها بالطبيب لتظهر في الداشبورد
+                patientId: patientId,
+                date: new Date()
+            }
+        }
       }
     });
   }
   redirect(`/dashboard/patients/${patientId}`);
-}
-export async function saveSettings(formData: FormData) {
-  const clientId = await getClientId();
-  if (!clientId) return;
-
-  const settingsJson = JSON.stringify({
-    color: formData.get("color"),
-    printHeader: formData.get("printHeader"),
-    language: formData.get("language")
-  });
-
-  // 1. Save to ClinicProfile
-  await db.clinicProfile.upsert({
-    where: { clientId },
-    update: { settings: settingsJson },
-    create: { clientId, settings: settingsJson }
-  }); 
-
-  // 2. Mark onboarding as complete
-  await db.client.update({
-    where: { id: clientId },
-    data: { onboardingCompleted: true }
-  });
-
-  // 3. Redirect
-  revalidatePath("/dashboard");
-  revalidatePath("/dashboard/settings");
 }
 
 export async function uploadFile(formData: FormData) {
@@ -1729,4 +1711,19 @@ export async function sendAdminReply(formData: FormData) {
 
   // تحديث الصفحة لرؤية الرسالة الجديدة فوراً
   revalidatePath(`/saas-admin/messages/${clientId}`);
+}
+
+// مثال للكود داخل دالة حفظ الإعدادات updateSettings
+export async function updateOnboarding(data: any) {
+  const clientId = await getClientId();
+  
+  await db.client.update({
+    where: { id: clientId },
+    data: {
+      clinicName: data.clinicName,
+      // ✅ أضف هذا السطر لحفظ العملة القادمة من الفورم
+      currency: data.currency || "USD", 
+      onboardingCompleted: true,
+    }
+  });
 }

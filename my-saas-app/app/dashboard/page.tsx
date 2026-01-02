@@ -1,4 +1,4 @@
-import { getClientId, getSettings } from "@/app/actions";
+import { getClientId } from "@/app/actions";
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { DashboardView } from "@/components/dashboard/dashboard-view";
@@ -7,14 +7,15 @@ export default async function DashboardPage() {
   const clientId = await getClientId();
   if (!clientId) redirect("/login");
 
-  // 1. التحقق من العميل
+  // 1. التحقق من العميل وجلب العملة
   const client = await db.client.findUnique({ where: { id: clientId } });
   if (!client) redirect("/login");
   
-  const currency = "MAD";
+  // ✅ جلب العملة (ستظهر $ أو USD إذا قمت بتغييرها في الداتابيس)
+  const currency = client.currency || "MAD"; 
 
   // ---------------------------------------------------------
-  // 📊 2. الإحصائيات العلوية
+  // 📊 2. الإحصائيات العلوية (Stats)
   // ---------------------------------------------------------
   const totalPatients = await db.patient.count({ where: { clientId } });
   const totalAppointments = await db.appointment.count({ where: { clientId } });
@@ -25,35 +26,30 @@ export default async function DashboardPage() {
   });
   const totalRevenue = revenueData._sum.amount || 0;
 
-
   // ---------------------------------------------------------
-  // 📈 3. بيانات الرسم البياني (Billing Summary) - آخر 30 يوم
+  // 📈 3. بيانات الرسم البياني (Billing Summary - Last 30 Days)
   // ---------------------------------------------------------
   const today = new Date();
   const lastMonth = new Date(today);
-  lastMonth.setDate(today.getDate() - 30); // ✅ نعود 30 يوماً للوراء
+  lastMonth.setDate(today.getDate() - 30);
 
-  // جلب الفواتير المدفوعة في آخر شهر
   const monthlyInvoices = await db.invoice.findMany({
     where: {
       clientId,
       status: "PAID",
-      date: { gte: lastMonth } // ✅ نستخدم date كما صححنا سابقاً
+      date: { gte: lastMonth }
     }
   });
 
-  // تجميع البيانات حسب التاريخ
   const billingChartData = [];
-
-  // حلقة تكرار لمدة 30 يوماً
   for (let i = 0; i < 30; i++) {
     const d = new Date(today);
-    d.setDate(today.getDate() - (29 - i)); // نبدأ من قبل 29 يوماً وصولاً لليوم
+    d.setDate(today.getDate() - (29 - i));
     
-    // ✅ تنسيق التاريخ ليظهر هكذا: 25/12
+    // تنسيق التاريخ يوم/شهر
     const dateStr = d.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' });
     
-    // حساب مجموع فواتير هذا اليوم بالتحديد
+    // جمع فواتير هذا اليوم
     const dailySum = monthlyInvoices
       .filter(inv => new Date(inv.date).toDateString() === d.toDateString())
       .reduce((sum, inv) => sum + inv.amount, 0);
@@ -61,9 +57,8 @@ export default async function DashboardPage() {
     billingChartData.push({ name: dateStr, amount: dailySum });
   }
 
-
   // ---------------------------------------------------------
-  // 🍩 4. بيانات الرسم الدائري (Appointment Status)
+  // 🍩 4. بيانات الرسم الدائري (Capacity Status)
   // ---------------------------------------------------------
   const scheduledCount = await db.appointment.count({ where: { clientId, status: "SCHEDULED" } });
   const completedCount = await db.appointment.count({ where: { clientId, status: "COMPLETED" } });
@@ -79,15 +74,20 @@ export default async function DashboardPage() {
     { name: 'No Data', value: 100, color: '#E2E8F0' }
   ];
 
-
   // ---------------------------------------------------------
-  // 📅 5. جدول المواعيد الأخيرة
+  // 📅 5. المواعيد الأخيرة (Recent Appointments)
   // ---------------------------------------------------------
   const recentAppointments = await db.appointment.findMany({
     where: { clientId },
     take: 5,
     orderBy: { date: 'desc' },
-    include: { patient: true }
+    include: { 
+      // ✅ نحن نستخدم (patient) المفرد لأن رسالة الخطأ السابقة أكدت ذلك
+      patient: true,
+      // ✅ نحن نستخدم (invoice) المفرد لأننا افترضنا أنك أصلحت الـ Schema
+      // إذا لم تصلح الـ Schema، احذف هذا السطر مؤقتاً ليعمل الكود
+      invoice: true 
+    }
   });
 
   const formattedAppointments = recentAppointments.map(apt => ({
@@ -96,7 +96,10 @@ export default async function DashboardPage() {
       ...apt.patient,
       firstName: apt.patient.firstName || "Unknown",
       lastName: apt.patient.lastName || "",
-    }
+    },
+    // ✅ جلب السعر (40) من الفاتورة المرتبطة
+    fees: apt.invoice?.amount || 0,
+    billingStatus: apt.invoice?.status || "Unbilled"
   }));
 
   return (
@@ -108,9 +111,9 @@ export default async function DashboardPage() {
         revenue: totalRevenue
       }}
       recentAppointments={formattedAppointments}
-      billingData={billingChartData} // ✅ يعرض الآن 30 نقطة بيانية بتواريخ
+      billingData={billingChartData}
       capacityData={capacityChartData}
-      currency={currency}
+      currency={currency} 
     />
   );
 }
