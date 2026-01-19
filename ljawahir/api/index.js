@@ -178,7 +178,7 @@ app.post('/api/generate-ad', async (req, res) => {
 app.get('/api/optimize-ads', async (req, res) => {
     const log = [];
     const accessToken = process.env.FB_ACCESS_TOKEN;
-    const accountId = process.env.FB_AD_ACCOUNT_ID;
+    const accountId = "act_2587718718162961";
 
     // --- إعدادات الأمان (Real Rules) ---
     const MAX_CPA = 15.00;        // أقصى تكلفة مسموحة للبيعة
@@ -271,7 +271,7 @@ app.post('/api/launch-campaign', async (req, res) => {
     const { adData } = req.body; // نستلم بيانات الإعلان من الداشبورد
     const accessToken = process.env.FB_ACCESS_TOKEN;
     const accountId = process.env.FB_AD_ACCOUNT_ID;
-    const pageId = process.env.FB_PAGE_ID;
+    const pageId = "933102739892061";
 
     if(!pageId) return res.status(400).json({error: "MISSING_PAGE_ID"});
 
