@@ -153,6 +153,14 @@
     </div>
 
     <script>
+        // 🔐 نظام الحماية البسيط
+const secretPass = "admin2026"; // يمكنك تغيير كلمة السر هنا
+const userPass = prompt("🔐 أدخل كلمة مرور الداشبورد:");
+
+if (userPass !== secretPass) {
+    document.body.innerHTML = "<h1 style='text-align:center; margin-top:20%; color:red;'>⛔ ممنوع الدخول! كلمة المرور خاطئة.</h1>";
+    throw new Error("Access Denied"); // يوقف تحميل باقي الكود
+}
         const API_URL = '/api/stats';
 
         async function fetchData() {
