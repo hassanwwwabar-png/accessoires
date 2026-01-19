@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Vente de fossiles, minéraux et météorites de luxe en provenance d'Erfoud, Maroc.">
+    <title>ABAGH PROOO | Fossiles & Luxe</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;800&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="search-container" id="searchBar">
+        <input type="text" class="search-input" id="searchInput" placeholder="Rechercher (ex: Ammonite, Bague)...">
+        <button class="search-close" onclick="toggleSearch()">X</button>
+    </div>
+
+    <div class="modal-overlay" id="guideModal">
+        <div class="modal-box">
+            </div>
+    </div>
+
+    <div class="modal-overlay" id="productViewModal">
+        <div class="modal-box product-modal-box">
+            <span class="modal-close" onclick="closeProductModal()">&times;</span>
+            <div class="product-detail-content" id="productDetailBody"></div>
+        </div>
+    </div>
+
+    <header>
+        <div class="logo">
+            <i class="fas fa-gem"></i> ABAGH<span>.</span>PROOO
+        </div>
+        <nav class="nav-menu" id="navMenu">
+            <a href="#" onclick="closeMenu()">Accueil</a>
+            <a href="#shop" onclick="closeMenu()">Collection</a>
+            <a href="#about" onclick="closeMenu()">À Propos</a>
+            <a href="#contact" onclick="closeMenu()">Contact</a>
+        </nav>
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <div class="header-icons">
+                <i class="fas fa-search" onclick="toggleSearch()"></i>
+                <i class="fas fa-shopping-bag" onclick="toggleModal()">
+                    <span id="cartCount" class="cart-badge">0</span>
+                </i>
+            </div>
+            <div class="mobile-toggle" onclick="toggleMenu()"><i class="fas fa-bars"></i></div>
+        </div>
+    </header>
+
+    <a href="https://wa.me/212660571862" class="float-wa" target="_blank"><i class="fab fa-whatsapp"></i></a>
+
+    <section class="hero">
+        <p>ARTISANAT GÉOLOGIQUE & FOSSILES</p>
+        <h1>L'HÉRITAGE D'ERFOUD</h1>
+        <button onclick="document.getElementById('shop').scrollIntoView()" class="hero-btn">DÉCOUVRIR LA COLLECTION</button>
+        <div class="custom-wave">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+                <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" class="shape-fill"></path>
+            </svg>
+        </div>
+    </section>
+
+    <section class="shop-section" id="shop">
+        
+        <div class="filter-container">
+            <button class="filter-btn active" onclick="filterProducts('all', this)">TOUT</button>
+            <button class="filter-btn" onclick="filterProducts('Fossile', this)">FOSSILES</button>
+            <button class="filter-btn" onclick="filterProducts('Minéral', this)">MINÉRAUX</button>
+            <button class="filter-btn" onclick="filterProducts('Bijoux', this)">BIJOUX</button>
+            <button class="filter-btn" onclick="filterProducts('Déco', this)">DÉCO</button>
+        </div>
+
+        <div class="grid" id="productGrid"></div>
+    </section>
+
+    <section class="about-banner-design" id="about">
+        <div class="wave-top">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+                <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" class="shape-fill"></path>
+            </svg>
+        </div>
+        <div class="about-overlay"></div>
+        <div class="about-content">
+            <h1 class="about-title">NOTRE HISTOIRE</h1>
+            <div class="about-subtitle-wrapper">
+                <span class="about-subtitle">ABAGH PROOO</span>
+                <div class="vertical-line"></div>
+                <span class="about-subtitle">ARTISANAT</span>
+            </div>
+        </div>
+    </section>
+<footer>
+    
+    <div class="footer-newsletter">
+        <div class="newsletter-content">
+            <h3>REJOIGNEZ LE CERCLE PRIVÉ</h3>
+            <p>Recevez nos nouveautés exclusives et offres spéciales d'Erfoud.</p>
+        </div>
+        <div class="newsletter-form">
+            <input type="email" placeholder="Votre adresse email...">
+            <button>S'INSCRIRE</button>
+        </div>
+    </div>
+
+    <div class="footer-main">
+        
+        <div class="footer-col brand-col">
+            <div class="footer-logo">
+                <i class="fas fa-gem"></i> ABAGH<span>.</span>PROOO
+            </div>
+            <p class="brand-desc">
+                L'excellence géologique du Maroc. Nous transformons l'histoire de la terre en pièces de luxe intemporelles.
+            </p>
+            <div class="social-links">
+                <a href="#"><i class="fab fa-instagram"></i></a>
+                <a href="#"><i class="fab fa-facebook-f"></i></a>
+                <a href="#"><i class="fab fa-tiktok"></i></a>
+                <a href="#"><i class="fab fa-whatsapp"></i></a>
+            </div>
+        </div>
+
+        <div class="footer-col">
+            <h4>COLLECTIONS</h4>
+            <a href="#" onclick="filterProducts('Fossile', null)">Fossiles Rares</a>
+            <a href="#" onclick="filterProducts('Minéral', null)">Minéraux Précieux</a>
+            <a href="#" onclick="filterProducts('Bijoux', null)">Bijoux Artisanaux</a>
+            <a href="#" onclick="filterProducts('Déco', null)">Décoration Luxe</a>
+        </div>
+
+        <div class="footer-col">
+            <h4>INFORMATIONS</h4>
+            <a href="#">À Propos de Nous</a>
+            <a href="#">Expédition & Livraison</a>
+            <a href="#">Politique de Retour</a>
+            <a href="#">Guide d'Authenticité</a>
+            <a href="#">Conditions Générales</a>
+        </div>
+
+        <div class="footer-col contact-col">
+            <h4>NOUS CONTACTER</h4>
+            <div class="contact-item">
+                <i class="fas fa-map-marker-alt"></i>
+                <span>inzgan </span>
+            </div>
+            <div class="contact-item">
+                <i class="fas fa-phone-alt"></i>
+                <span>+212660571862</span>
+            </div>
+            <div class="contact-item">
+                <i class="fas fa-envelope"></i>
+                <span>abarwwwhassan@gmail.com</span>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="footer-bottom">
+        <div class="copyright">
+            &copy; 2026 ABAGH PROOO. Tous droits réservés.
+        </div>
+        <div class="payment-icons">
+            <i class="fas fa-money-bill-wave" title="Paiement à la livraison"></i>
+            <i class="fab fa-cc-visa"></i>
+            <i class="fab fa-cc-mastercard"></i>
+            <i class="fas fa-lock" title="Paiement Sécurisé"></i>
+        </div>
+    </div>
+</footer>
+    <script src="script.js"></script>
+</body>
+</html>
