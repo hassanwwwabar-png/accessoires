@@ -269,7 +269,8 @@ app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
 // 5. إطلاق حملة حقيقية (REAL LAUNCH)
 app.post('/api/launch-campaign', async (req, res) => {
     const { adData } = req.body; // نستلم بيانات الإعلان من الداشبورد
-    const accessToken = process.env.FB_ACCESS_TOKEN;
+    // 👇 تم تحديث المفتاح ليعمل فوراً
+const accessToken = "EAAR9Q1nA75sBQbux8NuubuPQykeaaKlWOCbQBxBipZBNf2en3h8hAB2N5wY2WcZBKBSKCkP1SWr2kZB6BG8pGh2PFLSELPmfcjKromD5B59EBxQsixOrTpOZBX3XjgE10WDvdvSuHGJcAEWrVhnXFgD0IgVoFZAiEYPMrlu5GlK6qNakr9fxyoxo4pDklbUYY39XZBmhOBqmt2sEKPmYzuRQRqDE6u4dKbRVx0SHWunmBeWBvD5MiW7QhOaZBfWPeXvKhKf63doeBAdGzjbBQPiGvIZD";
     const accountId = process.env.FB_AD_ACCOUNT_ID;
     const pageId = "933102739892061";
 
