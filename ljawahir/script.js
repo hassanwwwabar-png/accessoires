@@ -14,7 +14,7 @@ function getCookieId() {
 
 const USER_ID = getCookieId();
 //  CHANGE THIS URL when you deploy your Node.js server
-const API_URL = 'http://localhost:3000/api/track'; 
+const API_URL = '/api/track';
 
 async function trackEvent(eventType, productData = {}) {
     try {
@@ -433,3 +433,4 @@ window.onclick = function(event) {
     if (event.target == productViewModal) closeProductModal();
     if (event.target == cartModal) closeModal();
 }
+module.exports = app;
