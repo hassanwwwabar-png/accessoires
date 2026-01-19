@@ -167,7 +167,7 @@ if (userPass !== secretPass) {
             const tableBody = document.getElementById('usersTableBody');
             
             try {
-                const res = await fetch(`${API_URL}/users`);
+               const res = await fetch('/api/stats/users');
                 const users = await res.json();
 
                 // 1. CALCULATE REAL NUMBERS (No fake data)
@@ -258,7 +258,7 @@ if (userPass !== secretPass) {
 
             try {
                 // 2. طلب البيانات من السيرفر
-                const res = await fetch(`${API_URL}/generate-ad`, {
+                const res = await fetch('/api/generate-ad', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ cookieId })
@@ -355,7 +355,7 @@ if (userPass !== secretPass) {
                 // 3. الاتصال بالسيرفر (هنا يحدث السحر!)
                 console.log("Sending data to server...", currentAdData);
                 
-                const res = await fetch(`${API_URL}/launch-campaign`, {
+                const res = await fetch('/api/launch-campaign', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ adData: currentAdData })
@@ -392,7 +392,7 @@ if (userPass !== secretPass) {
             logContainer.innerHTML = 'Connecting to Facebook...';
             
             try {
-                const res = await fetch(`${API_URL}/optimize-ads`);
+                const res = await fetch('/api/optimize-ads');
                 const data = await res.json();
 
                 let html = '';
