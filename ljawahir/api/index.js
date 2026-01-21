@@ -271,7 +271,7 @@ app.post('/api/launch-campaign', async (req, res) => {
     const { adData } = req.body; 
 
     // 👇 انسخ هذه الثلاثة أسطر كما هي (تحتوي على كل البيانات الصحيحة)
-    const accessToken = "EAAR9Q1nA75sBQbux8NuubuPQykeaaKlWOCbQBxBipZBNf2en3h8hAB2N5wY2WcZBKBSKCkP1SWr2kZB6BG8pGh2PFLSELPmfcjKromD5B59EBxQsixOrTpOZBX3XjgE10WDvdvSuHGJcAEWrVhnXFgD0IgVoFZAiEYPMrlu5GlK6qNakr9fxyoxo4pDklbUYY39XZBmhOBqmt2sEKPmYzuRQRqDE6u4dKbRVx0SHWunmBeWBvD5MiW7QhOaZBfWPeXvKhKf63doeBAdGzjbBQPiGvIZD";
+    const accessToken = "EAAR9Q1nA75sBQoSh7aZC3V83AHi9N117vSPWuZB3AWBzHZBvFyhjFYlVhZBuKczZAIjLplZAsXF6parm20SCNwg89uJ4PK8VlEsSjdVSVNZAS9y124m0wXRWB30j7ChF1TE3h8K4hmh4QolZC9VqMenN24yNJaHzzacNZBBtWlRr2ElGESpX7nSNXcqAJiH7jpOqNNdCdt0dE8HQqR7LCOvHcNSI5ncnkHabdZBQzLHOJwOVRXsOrO5vWbF07U596WWZAy5pSZC8v9OrXd0YPn7XQSh5";
     const accountId = "act_2587718718162961";
     const pageId = "933102739892061";
 
