@@ -271,10 +271,10 @@ app.post('/api/launch-campaign', async (req, res) => {
     const { adData } = req.body; 
 
     // 👇 انسخ هذه الثلاثة أسطر كما هي (تحتوي على كل البيانات الصحيحة)
-    const accessToken = "EAAR9Q1nA75sBQsGHGOTC16ZBK8ZBeKPjrsstUExmtdHn7O6C4mxY8M2eJvA92jbRvxv2zsOMt11rrs93jD6errGIsZCouu16RUA1ZALUciZAaFrzE5zm6y8VtZBw8smnTpNFgx8rnez09PMZAeiUF0ouAcumlQeoZBM0ijZCSisUiaqLdlHycepQjz4ZBMa9VUgEzvFN9FRF6s5ZBqaaQSKfwoFIOBGVPQQC9OVblKHN3VuZChvvWG0FM1Tdq1U17tQW4Eddq2zqRpjcCUSZAToJRiMvv";
-    const accountId = "act_2587718718162961";
-    const pageId = "933102739892061";
-
+    // نستدعي البيانات من الملف السري .env أو إعدادات Vercel
+const accessToken = process.env.FB_ACCESS_TOKEN; 
+const accountId = process.env.FB_ACCOUNT_ID || "act_2587718718162961"; // يمكن تركه هكذا أو وضعه في env
+const pageId = process.env.FB_PAGE_ID || "933102739892061";
     if(!pageId) return res.status(400).json({error: "MISSING_PAGE_ID"});
     
     // ... باقي الكود كما هو
@@ -322,7 +322,7 @@ app.post('/api/launch-campaign', async (req, res) => {
                 link_data: {
                     image_hash: undefined, // لو كانت الصورة مرفوعة سابقاً
                     picture: adData.productImage || "https://i.imgur.com/2p4b4dD.jpeg", // رابط الصورة
-                    link: "https://abagh-shop.com", // رابط متجرك
+                    link: "https://accessoires-teal.vercel.app", // رابط متجرك
                     message: adData.primaryText, // النص الأساسي (الفرنسي/العربي)
                     name: adData.headline, // العنوان
                     call_to_action: { type: "SHOP_NOW" }
