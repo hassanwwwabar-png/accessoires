@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ABAGH AI | Ultimate Dashboard</title>
+    <title>ABAGH AI | Command Center</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -45,10 +45,14 @@
         .kpi-value { font-size: 2rem; font-weight: 700; color: #fff; }
         .kpi-icon { position: absolute; right: 20px; top: 20px; font-size: 1.5rem; opacity: 0.2; }
 
+        /* --- SECTIONS (TAB SYSTEM) --- */
+        .section-view { display: none; animation: fadeIn 0.3s ease-in-out; }
+        .section-view.active-view { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
         /* --- DASHBOARD LAYOUT --- */
         .dashboard-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; height: calc(100vh - 280px); }
         
-        /* PANELS */
         .panel { background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-color); padding: 20px; display: flex; flex-direction: column; overflow: hidden; }
         .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid var(--border-color); }
         .panel-title { font-weight: 700; font-size: 1.1rem; display: flex; align-items: center; gap: 10px; }
@@ -56,8 +60,8 @@
         /* TABLE */
         .table-container { overflow-y: auto; flex: 1; }
         table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; color: var(--text-secondary); padding: 12px 10px; font-size: 0.75rem; border-bottom: 1px solid var(--border-color); position: sticky; top: 0; background: var(--bg-card); }
-        td { padding: 12px 10px; border-bottom: 1px solid rgba(51, 65, 85, 0.5); font-size: 0.9rem; }
+        th { text-align: left; color: var(--text-secondary); padding: 12px 10px; font-size: 0.75rem; border-bottom: 1px solid var(--border-color); position: sticky; top: 0; background: var(--bg-card); z-index: 10; }
+        td { padding: 12px 10px; border-bottom: 1px solid rgba(51, 65, 85, 0.5); font-size: 0.85rem; }
         
         /* BADGES */
         .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; display: inline-block; }
@@ -67,11 +71,17 @@
         .btn-sm { background: transparent; color: var(--accent-gold); border: 1px solid var(--accent-gold); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; transition: 0.3s; }
         .btn-sm:hover { background: var(--accent-gold); color: #000; }
 
-        /* ADS LOG (Updated for Rich Data) */
-        .log-container { flex: 1; overflow-y: auto; padding-right: 5px; }
-        .ad-stat-card { background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; margin-bottom: 10px; }
-        .stat-row { display: flex; justify-content: space-between; font-size: 0.85rem; margin-top: 5px; color: #cbd5e1; }
-        .stat-label { color: #64748b; font-size: 0.75rem; }
+        /* CAPI LOGS */
+        .capi-log-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #334155; font-family: monospace; font-size: 0.8rem; }
+        .capi-event { color: var(--accent-blue); font-weight: bold; }
+        .capi-time { color: #64748b; }
+
+        /* ADS MANAGER EXTENDED */
+        .ad-stat-card { background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; margin-bottom: 10px; }
+        .stat-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px; }
+        .mini-stat { text-align: center; }
+        .mini-label { display: block; font-size: 0.65rem; color: #64748b; letter-spacing: 1px; }
+        .mini-val { font-size: 0.9rem; font-weight: bold; color: #cbd5e1; }
 
         /* MODAL */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 100; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
@@ -85,85 +95,117 @@
 
     <aside class="sidebar">
         <div class="logo"><i class="fas fa-brain"></i> ABAGH <span>AI</span></div>
-        <div class="nav-item active"><i class="fas fa-chart-line"></i> Real-Time Monitor</div>
-        <div class="nav-item"><i class="fas fa-bullseye"></i> CAPI Events</div>
-        <div class="nav-item"><i class="fas fa-magic"></i> AI Generator</div>
+        
+        <div class="nav-item active" onclick="switchTab('monitor', this)">
+            <i class="fas fa-chart-line"></i> Real-Time Monitor
+        </div>
+        
+        <div class="nav-item" onclick="switchTab('capi', this)">
+            <i class="fas fa-bullseye"></i> CAPI Events Log
+        </div>
+        
+        <div class="nav-item" onclick="switchTab('monitor', this); highlightAI();">
+            <i class="fas fa-magic"></i> AI Generator
+        </div>
+
         <div style="margin-top:auto; font-size:0.8rem; color:#64748b; text-align:center;">
-            System Status: <span style="color:var(--success);">● ONLINE</span>
+            System: <span style="color:var(--success);">● ONLINE</span>
         </div>
     </aside>
 
     <main class="main-content">
         
-        <div class="top-bar">
-            <div>
-                <h2 style="margin:0;">Live Dashboard</h2>
-                <p style="margin:5px 0 0; color:#94a3b8;">Facebook CAPI & Server-Side Tracking Active.</p>
-            </div>
-            <button class="action-btn" onclick="fetchData()">
-                <i class="fas fa-sync-alt"></i> Refresh Data
-            </button>
-        </div>
-
-        <div class="kpi-grid">
-            <div class="kpi-card">
-                <i class="fas fa-users kpi-icon"></i>
-                <div class="kpi-title">TOTAL VISITORS</div>
-                <div class="kpi-value" id="real-visitors">--</div>
-            </div>
-            <div class="kpi-card">
-                <i class="fas fa-fire kpi-icon" style="color:var(--success);"></i>
-                <div class="kpi-title">HOT LEADS (>20pts)</div>
-                <div class="kpi-value" id="real-hot-leads" style="color:var(--success);">--</div>
-            </div>
-            <div class="kpi-card">
-                <i class="fas fa-server kpi-icon" style="color:var(--accent-gold);"></i>
-                <div class="kpi-title">CAPI EVENTS SENT</div>
-                <div class="kpi-value" id="real-actions" style="color:var(--accent-gold);">--</div>
-            </div>
-            <div class="kpi-card">
-                <i class="fas fa-eye kpi-icon" style="color:var(--accent-blue);"></i>
-                <div class="kpi-title">PRODUCT VIEWS</div>
-                <div class="kpi-value" id="real-views" style="color:var(--accent-blue);">--</div>
-            </div>
-        </div>
-
-        <div class="dashboard-grid">
-            <div class="panel">
-                <div class="panel-header">
-                    <div class="panel-title"><i class="fas fa-user-tag"></i> Visitor Intelligence</div>
+        <div id="monitor" class="section-view active-view">
+            <div class="top-bar">
+                <div>
+                    <h2 style="margin:0;">Command Center</h2>
+                    <p style="margin:5px 0 0; color:#94a3b8;">Full control over Ads & Visitors.</p>
                 </div>
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>STATUS</th>
-                                <th>USER ID</th>
-                                <th>INTEREST</th>
-                                <th>HISTORY</th>
-                                <th>ACTION</th>
-                            </tr>
-                        </thead>
-                        <tbody id="usersTableBody">
-                            <tr><td colspan="5" style="text-align:center; padding:20px;">Loading Data...</td></tr>
-                        </tbody>
-                    </table>
+                <button class="action-btn" onclick="fetchData()">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+            </div>
+
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <i class="fas fa-users kpi-icon"></i>
+                    <div class="kpi-title">TOTAL VISITORS</div>
+                    <div class="kpi-value" id="real-visitors">--</div>
+                </div>
+                <div class="kpi-card">
+                    <i class="fas fa-fire kpi-icon" style="color:var(--success);"></i>
+                    <div class="kpi-title">HOT LEADS</div>
+                    <div class="kpi-value" id="real-hot-leads" style="color:var(--success);">--</div>
+                </div>
+                <div class="kpi-card">
+                    <i class="fas fa-server kpi-icon" style="color:var(--accent-gold);"></i>
+                    <div class="kpi-title">CAPI EVENTS</div>
+                    <div class="kpi-value" id="real-actions" style="color:var(--accent-gold);">--</div>
+                </div>
+                <div class="kpi-card">
+                    <i class="fas fa-eye kpi-icon" style="color:var(--accent-blue);"></i>
+                    <div class="kpi-title">TOTAL VIEWS</div>
+                    <div class="kpi-value" id="real-views" style="color:var(--accent-blue);">--</div>
                 </div>
             </div>
 
-            <div class="panel">
-                <div class="panel-header">
-                    <div class="panel-title"><i class="fas fa-ad"></i> Ads Manager</div>
-                    <button class="btn-sm" onclick="runOptimization()">Run Rules</button>
+            <div class="dashboard-grid">
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title"><i class="fas fa-user-tag"></i> Visitor Intelligence</div>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>STATUS</th>
+                                    <th>USER ID</th>
+                                    <th>INTEREST</th>
+                                    <th>STATS</th>
+                                    <th>AI ACTION</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTableBody">
+                                <tr><td colspan="5" style="text-align:center; padding:20px;">Loading...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-                <div class="log-container" id="optimizationLog">
-                    <div style="text-align:center; padding:40px; color:#64748b;">
-                        <i class="fas fa-robot fa-2x" style="margin-bottom:10px;"></i><br>
-                        Click "Run Rules" to analyze active campaigns.
+
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title"><i class="fas fa-ad"></i> Ads Manager</div>
+                        <button class="btn-sm" onclick="runOptimization()">Run Rules</button>
+                    </div>
+                    <div class="log-container" id="optimizationLog">
+                        <div style="text-align:center; padding:40px; color:#64748b;">
+                            <i class="fas fa-robot fa-2x" style="margin-bottom:10px;"></i><br>
+                            Click "Run Rules" to fetch Facebook Data.
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
+
+        <div id="capi" class="section-view">
+            <div class="top-bar">
+                <div>
+                    <h2 style="margin:0;">CAPI Event Stream</h2>
+                    <p style="margin:5px 0 0; color:#94a3b8;">Real-time raw data sent to Facebook Servers.</p>
+                </div>
+                <button class="action-btn" onclick="fetchData()">Refresh Log</button>
+            </div>
+            
+            <div class="panel" style="height: calc(100vh - 150px);">
+                <div class="panel-header">
+                    <div class="panel-title"><i class="fas fa-stream"></i> Event History</div>
+                    <span class="badge" style="background:#334155;">Live</span>
+                </div>
+                <div class="table-container" id="capiLogContainer">
+                    </div>
+            </div>
+        </div>
+
     </main>
 
     <div id="adModal" class="modal">
@@ -179,199 +221,202 @@
     </div>
 
     <script>
-        // 🔐 Security Check
         const secretPass = "admin2026"; 
         const userPass = prompt("🔐 Enter Dashboard Password:");
-        if (userPass !== secretPass) {
-            document.body.innerHTML = "<div style='height:100vh; display:flex; justify-content:center; align-items:center; background:#000; color:red;'><h1>⛔ ACCESS DENIED</h1></div>";
-            throw new Error("Access Denied");
+        if (userPass !== secretPass) { document.body.innerHTML = "ACCESS DENIED"; throw new Error("Denied"); }
+
+        const API_URL = '/api'; 
+
+        // --- NAVIGATION ---
+        function switchTab(tabId, element) {
+            // Hide all views
+            document.querySelectorAll('.section-view').forEach(el => el.classList.remove('active-view'));
+            // Show selected
+            document.getElementById(tabId).classList.add('active-view');
+            // Update Sidebar
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            if(element) element.classList.add('active');
         }
 
-        const API_URL = '/api'; // Relative path works on Vercel
+        function highlightAI() {
+            alert("💡 To use AI Generator:\n1. Go to 'Monitor' tab.\n2. Find a user in the table.\n3. Click the 'AI Ad' button next to them.");
+        }
 
-        // --- 1. FETCH & RENDER DATA ---
+        // --- FETCH DATA ---
+        let allUsersData = [];
+
         async function fetchData() {
-            const tableBody = document.getElementById('usersTableBody');
-            
             try {
-                // Fetch Users
                 const resUsers = await fetch(`${API_URL}/stats/users`);
                 const rawUsers = await resUsers.json();
-                
-                // Fetch Global Stats
                 const resStats = await fetch(`${API_URL}/stats`);
                 const stats = await resStats.json();
 
-                // Sort Users by Score
-                const users = rawUsers.sort((a, b) => b.interestScore - a.interestScore);
+                allUsersData = rawUsers.sort((a, b) => b.interestScore - a.interestScore);
 
-                // Update KPI Cards
+                // Update KPIs
                 document.getElementById('real-visitors').innerText = stats.totalVisitors || 0;
-                document.getElementById('real-hot-leads').innerText = users.filter(u => u.interestScore > 20).length;
-                document.getElementById('real-actions').innerText = stats.totalActions || 0; // CAPI Events
+                document.getElementById('real-hot-leads').innerText = allUsersData.filter(u => u.interestScore > 20).length;
+                document.getElementById('real-actions').innerText = stats.totalActions || 0;
                 document.getElementById('real-views').innerText = stats.totalViews || 0;
 
-                // Render Table
-                if (users.length === 0) {
-                    tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">No Visitors Yet</td></tr>';
-                    return;
-                }
+                renderUsersTable();
+                renderCapiLog();
 
-                tableBody.innerHTML = users.map(user => {
-                    let badgeClass = user.interestScore >= 20 ? 'badge-hot' : 'badge-warm';
-                    let badgeText = user.interestScore >= 20 ? '🔥 HOT LEAD' : 'Browsing';
-                    let topInterest = user.interests.length > 0 ? user.interests[user.interests.length-1] : 'General';
-                    const views = user.history.filter(h => h.event === 'product_view').length;
-                    const carts = user.history.filter(h => h.event === 'add_to_cart').length;
-
-                    return `
-                    <tr>
-                        <td><span class="badge ${badgeClass}">${badgeText}</span></td>
-                        <td style="font-family:monospace; color:#94a3b8;">${user.cookieId.substr(0, 6)}...</td>
-                        <td style="color:#fff;">${topInterest}</td>
-                        <td style="font-size:0.8rem; color:#cbd5e1;">
-                            <i class="fas fa-eye"></i> ${views} &nbsp; <i class="fas fa-shopping-cart"></i> ${carts}
-                        </td>
-                        <td>
-                            <button class="btn-sm" onclick="generateAd('${user.cookieId}')">
-                                AI Ad
-                            </button>
-                        </td>
-                    </tr>
-                    `;
-                }).join('');
-
-            } catch (error) {
-                console.error(error);
-            }
+            } catch (error) { console.error(error); }
         }
 
-        // --- 2. GENERATE AD (OpenAI) ---
-        let currentAdData = null;
+        function renderUsersTable() {
+            const tbody = document.getElementById('usersTableBody');
+            if (allUsersData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No Visitors</td></tr>';
+                return;
+            }
+            tbody.innerHTML = allUsersData.map(u => {
+                let badge = u.interestScore >= 20 ? '<span class="badge badge-hot">🔥 HOT</span>' : '<span class="badge badge-warm">Browsing</span>';
+                let interest = u.interests.length > 0 ? u.interests[u.interests.length-1] : 'General';
+                let views = u.history.filter(h => h.event === 'product_view').length;
+                
+                return `<tr>
+                    <td>${badge}</td>
+                    <td style="font-family:monospace; color:#94a3b8;">${u.cookieId.substr(0,6)}...</td>
+                    <td style="color:#fff;">${interest}</td>
+                    <td style="font-size:0.8rem; color:#cbd5e1;">Views: ${views} | Score: ${u.interestScore}</td>
+                    <td><button class="btn-sm" onclick="generateAd('${u.cookieId}')">AI Ad</button></td>
+                </tr>`;
+            }).join('');
+        }
 
-        async function generateAd(cookieId) {
-            const modal = document.getElementById('adModal');
-            const content = document.getElementById('adModalContent');
-            modal.style.display = 'flex';
-            
-            content.innerHTML = `
-                <div style="text-align:center; padding:40px;">
-                    <i class="fas fa-circle-notch fa-spin fa-2x" style="color:var(--accent-gold);"></i>
-                    <p style="margin-top:15px; color:#aaa;">Analyzing behavior & writing copy...</p>
-                </div>
-            `;
-
-            try {
-                const res = await fetch(`${API_URL}/generate-ad`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ cookieId })
+        function renderCapiLog() {
+            const container = document.getElementById('capiLogContainer');
+            // Flatten history from all users to create a log
+            let events = [];
+            allUsersData.forEach(u => {
+                u.history.forEach(h => {
+                    events.push({ ...h, user: u.cookieId });
                 });
-                const data = await res.json();
-                currentAdData = data; 
+            });
+            // Sort by time desc
+            events.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
-                // Dynamic Preview
-                content.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                        <span class="badge" style="background:#2563eb; color:white;">${data.strategy}</span>
-                        <span style="font-size:0.8rem; color:#aaa;">Target: ${data.interest}</span>
+            container.innerHTML = events.map(e => {
+                let color = e.event === 'purchase' ? '#10b981' : (e.event === 'add_to_cart' ? '#C59D5F' : '#3b82f6');
+                let time = new Date(e.timestamp).toLocaleTimeString();
+                return `
+                <div class="capi-log-item">
+                    <div>
+                        <span class="capi-time">[${time}]</span> 
+                        <span style="color:${color}; font-weight:bold;">${e.event.toUpperCase()}</span>
+                        <span style="color:#64748b;"> - User: ${e.user.substr(0,6)}...</span>
                     </div>
-
-                    <div class="ad-preview-box">
-                        <div style="font-size:0.7rem; color:#64748b; margin-bottom:5px;">FACEBOOK PREVIEW</div>
-                        <h4 style="margin:0 0 5px 0; color:#fff;">${data.ad.headline}</h4>
-                        <p style="color:#cbd5e1; font-size:0.9rem; margin:0;">${data.ad.primary_text}</p>
-                    </div>
-
-                    <div style="margin-top:20px; display:flex; gap:10px;">
-                        <button class="action-btn" style="flex:1; justify-content:center; background:#10b981; color:white;" onclick="launchAdCampaign()">
-                            <i class="fas fa-paper-plane"></i> LAUNCH CAMPAIGN
-                        </button>
-                        <button class="btn-sm" onclick="generateAd('${cookieId}')">Regenerate</button>
-                    </div>
-                `;
-
-            } catch (error) {
-                content.innerHTML = `<div style="color:#ef4444; text-align:center;">❌ Error: ${error.message}</div>`;
-            }
+                    <div style="color:#cbd5e1;">Product: ${e.product || 'N/A'}</div>
+                </div>`;
+            }).join('');
         }
 
-        // --- 3. LAUNCH CAMPAIGN ---
-        async function launchAdCampaign() {
-            const btn = document.querySelector('.action-btn');
-            if(!currentAdData) return;
-
-            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Publishing...';
-            btn.disabled = true;
-
-            try {
-                const res = await fetch(`${API_URL}/launch-campaign`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ adData: currentAdData })
-                });
-                const result = await res.json();
-
-                if(result.success) {
-                    btn.style.background = "#2563eb"; 
-                    btn.innerHTML = '<i class="fas fa-check"></i> LIVE!';
-                    alert(`✅ SUCCESS!\nCampaign ID: ${result.campaign_id}\nCheck Facebook Ads Manager.`);
-                    setTimeout(() => { document.getElementById('adModal').style.display='none'; }, 2000);
-                } else {
-                    throw new Error("Launch Failed");
-                }
-            } catch (error) {
-                btn.style.background = "#ef4444"; 
-                btn.innerHTML = 'FAILED';
-                alert("❌ Launch Failed. Check Console/Permissions.");
-                btn.disabled = false;
-            }
-        }
-
-        // --- 4. RUN OPTIMIZATION RULES (Advanced) ---
+        // --- OPTIMIZATION (Updated with IMPRESSIONS & REASON) ---
         async function runOptimization() {
-            const logContainer = document.getElementById('optimizationLog');
-            logContainer.innerHTML = '<div style="text-align:center; padding:20px;"><i class="fas fa-circle-notch fa-spin"></i> Analyzing...</div>';
-
+            const log = document.getElementById('optimizationLog');
+            log.innerHTML = '<div style="text-align:center; padding:20px;"><i class="fas fa-circle-notch fa-spin"></i> Analyzing...</div>';
+            
             try {
                 const res = await fetch(`${API_URL}/optimize-ads`);
                 const data = await res.json();
-
+                
                 if (!data.success || !data.report || data.report.length === 0) {
-                    logContainer.innerHTML = '<div style="padding:10px; color:#aaa; text-align:center;">No active campaigns found.</div>';
+                    log.innerHTML = '<div style="text-align:center; padding:10px;">No Active Campaigns Found</div>';
                     return;
                 }
 
-                logContainer.innerHTML = data.report.map(r => {
-                    let border = r.decision.includes("KILL") ? "#ef4444" : (r.decision.includes("SCALE") ? "#10b981" : "#3b82f6");
-                    let decisionIcon = r.decision.includes("KILL") ? "fa-ban" : "fa-check-circle";
-
+                log.innerHTML = data.report.map(r => {
+                    let border = r.decision.includes("KILL") ? "#ef4444" : "#10b981";
+                    
                     return `
                     <div class="ad-stat-card" style="border-left: 4px solid ${border};">
-                        <div style="display:flex; justify-content:space-between; font-weight:bold; margin-bottom:5px;">
-                            <span>${r.name}</span>
-                            <span style="color:${border}"><i class="fas ${decisionIcon}"></i> ${r.decision}</span>
+                        <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                            <span style="font-weight:bold; color:#fff;">${r.name}</span>
+                            <span style="color:${border}; font-weight:bold;">${r.decision}</span>
                         </div>
-                        <div class="stat-row">
-                            <span><span class="stat-label">SPEND:</span> $${r.spend}</span>
-                            <span><span class="stat-label">SALES:</span> ${r.sales}</span>
+                        
+                        <div style="font-size:0.8rem; color:#94a3b8; margin-bottom:10px; font-style:italic;">
+                            Reason: "${r.reason}"
                         </div>
-                        <div class="stat-row">
-                            <span><span class="stat-label">CTR:</span> <span style="color:#60a5fa">${r.ctr}</span></span>
-                            <span><span class="stat-label">CPC:</span> ${r.cpc}</span>
-                        </div>
-                        <div class="stat-row" style="margin-top:8px; border-top:1px solid rgba(255,255,255,0.1); padding-top:5px;">
-                            <span style="color:#94a3b8; font-size:0.75rem;">Action: ${r.action_taken}</span>
+
+                        <div class="stat-grid-3">
+                            <div class="mini-stat">
+                                <span class="mini-label">SPEND</span>
+                                <span class="mini-val">$${r.spend}</span>
+                            </div>
+                            <div class="mini-stat">
+                                <span class="mini-label">SALES</span>
+                                <span class="mini-val">${r.sales}</span>
+                            </div>
+                            <div class="mini-stat">
+                                <span class="mini-label">CTR</span>
+                                <span class="mini-val" style="color:#60a5fa">${r.ctr}</span>
+                            </div>
+                            <div class="mini-stat">
+                                <span class="mini-label">CPC</span>
+                                <span class="mini-val">$${r.cpc}</span>
+                            </div>
+                            <div class="mini-stat">
+                                <span class="mini-label">IMPRESSIONS</span>
+                                <span class="mini-val" style="color:#fbbf24">${r.impressions || 0}</span>
+                            </div>
+                             <div class="mini-stat">
+                                <span class="mini-label">CPM</span>
+                                <span class="mini-val">$${r.cpm || '0.00'}</span>
+                            </div>
                         </div>
                     </div>`;
                 }).join('');
 
-            } catch (error) {
-                logContainer.innerHTML = `<div style="color:red; text-align:center;">Error: ${error.message}</div>`;
-            }
+            } catch (error) { log.innerHTML = `Error: ${error.message}`; }
         }
 
-        // Auto Refresh
+        // --- AI GENERATOR & LAUNCH ---
+        let currentAdData = null;
+        async function generateAd(cookieId) {
+            const modal = document.getElementById('adModal');
+            const content = document.getElementById('adModalContent');
+            modal.style.display = 'flex';
+            content.innerHTML = '<div style="text-align:center; padding:30px;">Analyzing...</div>';
+
+            try {
+                const res = await fetch(`${API_URL}/generate-ad`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ cookieId })
+                });
+                const data = await res.json();
+                currentAdData = data;
+
+                content.innerHTML = `
+                    <div class="ad-preview-box">
+                        <h4 style="color:white; margin:0 0 10px 0;">${data.ad.headline}</h4>
+                        <p style="color:#ccc; font-size:0.9rem;">${data.ad.primary_text}</p>
+                    </div>
+                    <div style="margin-top:20px; display:flex; gap:10px;">
+                        <button class="action-btn" style="flex:1; justify-content:center;" onclick="launchAdCampaign()">🚀 Launch</button>
+                    </div>
+                `;
+            } catch (e) { content.innerHTML = "Error Generating Ad"; }
+        }
+
+        async function launchAdCampaign() {
+            if(!currentAdData) return;
+            try {
+                const res = await fetch(`${API_URL}/launch-campaign`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ adData: currentAdData })
+                });
+                const result = await res.json();
+                if(result.success) { alert(`✅ Live! ID: ${result.campaign_id}`); document.getElementById('adModal').style.display='none'; }
+                else throw new Error("Launch Failed");
+            } catch (e) { alert("❌ Failed to launch."); }
+        }
+
         fetchData();
         setInterval(fetchData, 5000);
     </script>
