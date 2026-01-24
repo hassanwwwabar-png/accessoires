@@ -168,7 +168,10 @@ if (userPass !== secretPass) {
             
             try {
                const res = await fetch('/api/stats/users');
-                const users = await res.json();
+                const rawUsers = await res.json();
+
+// 🔥 التعديل السحري: ترتيب الزوار حسب النقاط (الأهم أولاً)
+const users = rawUsers.sort((a, b) => b.interestScore - a.interestScore);
 
                 // 1. CALCULATE REAL NUMBERS (No fake data)
                 let totalCarts = 0;
