@@ -244,6 +244,51 @@ app.get('/api/stats/users', async (req, res) => {
         res.status(500).json({ error: "DB Error" });
     }
 });
+// ... (بعد تعريف الـ app والـ DB)
+
+// 🕵️‍♂️ نظام التتبع الذكي (Tracking & Scoring Engine)
+app.post('/api/track', async (req, res) => {
+    try {
+        const { cookieId, event, product, category } = req.body;
+        
+        // 1. البحث عن الزائر أو إنشاؤه
+        let user = await User.findOne({ cookieId });
+        if (!user) {
+            user = new User({ cookieId, interestScore: 0, history: [] });
+        }
+
+        // 2. تسجيل الحدث في التاريخ
+        user.history.push({ event, product });
+        user.lastActive = new Date();
+
+        // 3. تحديث الاهتمامات (إذا كان هناك تصنيف للمنتج)
+        if (category && !user.interests.includes(category)) {
+            user.interests.push(category);
+        }
+
+        // 4. 🧠 حساب النقاط (Scoring Logic)
+        let points = 0;
+        switch(event) {
+            case 'page_view': points = 1; break;
+            case 'product_view': points = 5; break;     // اهتمام بسيط
+            case 'add_to_cart': points = 20; break;     // اهتمام قوي 🔥
+            case 'checkout_start': points = 30; break;  // ساخن جداً 🔥🔥
+            case 'purchase': points = 50; break;        // عميل 💰
+            default: points = 0;
+        }
+
+        user.interestScore += points;
+
+        // 5. حفظ البيانات
+        await user.save();
+
+        res.json({ success: true, score: user.interestScore, status: "Tracked" });
+
+    } catch (error) {
+        console.error("Tracking Error:", error);
+        res.status(500).json({ error: "Tracking failed" });
+    }
+});
 
 // ... (تأكد أن module.exports = app; موجودة في النهاية)
 const PORT = 3000;

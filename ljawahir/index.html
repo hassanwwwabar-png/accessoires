@@ -18,8 +18,7 @@
     </div>
 
     <div class="modal-overlay" id="guideModal">
-        <div class="modal-box">
-            </div>
+        <div class="modal-box"></div>
     </div>
 
     <div class="modal-overlay" id="productViewModal">
@@ -37,7 +36,7 @@
             <a href="#" onclick="closeMenu()">Accueil</a>
             <a href="#shop" onclick="closeMenu()">Collection</a>
             <a href="#about" onclick="closeMenu()">À Propos</a>
-            <a href="#contact" onclick="closeMenu()">Contact</a>
+            <a href="#contact" onclick="document.querySelector('footer').scrollIntoView(); closeMenu()">Contact</a>
         </nav>
         <div style="display: flex; align-items: center; gap: 15px;">
             <div class="header-icons">
@@ -64,7 +63,6 @@
     </section>
 
     <section class="shop-section" id="shop">
-        
         <div class="filter-container">
             <button class="filter-btn active" onclick="filterProducts('all', this)">TOUT</button>
             <button class="filter-btn" onclick="filterProducts('Fossile', this)">FOSSILES</button>
@@ -73,7 +71,9 @@
             <button class="filter-btn" onclick="filterProducts('Déco', this)">DÉCO</button>
         </div>
 
-        <div class="grid" id="productGrid"></div>
+        <div class="grid" id="productGrid">
+            <p style="text-align:center; width:100%;">Chargement des produits...</p>
+        </div>
     </section>
 
     <section class="about-banner-design" id="about">
@@ -92,83 +92,82 @@
             </div>
         </div>
     </section>
-<footer>
-    
-    <div class="footer-newsletter">
-        <div class="newsletter-content">
-            <h3>REJOIGNEZ LE CERCLE PRIVÉ</h3>
-            <p>Recevez nos nouveautés exclusives et offres spéciales d'Erfoud.</p>
-        </div>
-        <div class="newsletter-form">
-            <input type="email" placeholder="Votre adresse email...">
-            <button>S'INSCRIRE</button>
-        </div>
-    </div>
 
-    <div class="footer-main">
-        
-        <div class="footer-col brand-col">
-            <div class="footer-logo">
-                <i class="fas fa-gem"></i> ABAGH<span>.</span>PROOO
+    <footer>
+        <div class="footer-newsletter">
+            <div class="newsletter-content">
+                <h3>REJOIGNEZ LE CERCLE PRIVÉ</h3>
+                <p>Recevez nos nouveautés exclusives et offres spéciales d'Erfoud.</p>
             </div>
-            <p class="brand-desc">
-                L'excellence géologique du Maroc. Nous transformons l'histoire de la terre en pièces de luxe intemporelles.
-            </p>
-            <div class="social-links">
-                <a href="#"><i class="fab fa-instagram"></i></a>
-                <a href="#"><i class="fab fa-facebook-f"></i></a>
-                <a href="#"><i class="fab fa-tiktok"></i></a>
-                <a href="#"><i class="fab fa-whatsapp"></i></a>
+            <div class="newsletter-form">
+                <input type="email" placeholder="Votre adresse email...">
+                <button>S'INSCRIRE</button>
             </div>
         </div>
 
-        <div class="footer-col">
-            <h4>COLLECTIONS</h4>
-            <a href="#" onclick="filterProducts('Fossile', null)">Fossiles Rares</a>
-            <a href="#" onclick="filterProducts('Minéral', null)">Minéraux Précieux</a>
-            <a href="#" onclick="filterProducts('Bijoux', null)">Bijoux Artisanaux</a>
-            <a href="#" onclick="filterProducts('Déco', null)">Décoration Luxe</a>
-        </div>
-
-        <div class="footer-col">
-            <h4>INFORMATIONS</h4>
-            <a href="#">À Propos de Nous</a>
-            <a href="#">Expédition & Livraison</a>
-            <a href="#">Politique de Retour</a>
-            <a href="#">Guide d'Authenticité</a>
-            <a href="#">Conditions Générales</a>
-        </div>
-
-        <div class="footer-col contact-col">
-            <h4>NOUS CONTACTER</h4>
-            <div class="contact-item">
-                <i class="fas fa-map-marker-alt"></i>
-                <span>inzgan </span>
+        <div class="footer-main">
+            <div class="footer-col brand-col">
+                <div class="footer-logo">
+                    <i class="fas fa-gem"></i> ABAGH<span>.</span>PROOO
+                </div>
+                <p class="brand-desc">
+                    L'excellence géologique du Maroc. Nous transformons l'histoire de la terre en pièces de luxe intemporelles.
+                </p>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-tiktok"></i></a>
+                    <a href="#"><i class="fab fa-whatsapp"></i></a>
+                </div>
             </div>
-            <div class="contact-item">
-                <i class="fas fa-phone-alt"></i>
-                <span>+212660571862</span>
+
+            <div class="footer-col">
+                <h4>COLLECTIONS</h4>
+                <a href="#" onclick="filterProducts('Fossile', null)">Fossiles Rares</a>
+                <a href="#" onclick="filterProducts('Minéral', null)">Minéraux Précieux</a>
+                <a href="#" onclick="filterProducts('Bijoux', null)">Bijoux Artisanaux</a>
+                <a href="#" onclick="filterProducts('Déco', null)">Décoration Luxe</a>
             </div>
-            <div class="contact-item">
-                <i class="fas fa-envelope"></i>
-                <span>abarwwwhassan@gmail.com</span>
+
+            <div class="footer-col">
+                <h4>INFORMATIONS</h4>
+                <a href="#">À Propos de Nous</a>
+                <a href="#">Expédition & Livraison</a>
+                <a href="#">Politique de Retour</a>
+                <a href="#">Guide d'Authenticité</a>
+                <a href="#">Conditions Générales</a>
+            </div>
+
+            <div class="footer-col contact-col" id="contact">
+                <h4>NOUS CONTACTER</h4>
+                <div class="contact-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>inzgan </span>
+                </div>
+                <div class="contact-item">
+                    <i class="fas fa-phone-alt"></i>
+                    <span>+212660571862</span>
+                </div>
+                <div class="contact-item">
+                    <i class="fas fa-envelope"></i>
+                    <span>abarwwwhassan@gmail.com</span>
+                </div>
             </div>
         </div>
 
-    </div>
+        <div class="footer-bottom">
+            <div class="copyright">
+                &copy; 2026 ABAGH PROOO. Tous droits réservés.
+            </div>
+            <div class="payment-icons">
+                <i class="fas fa-money-bill-wave" title="Paiement à la livraison"></i>
+                <i class="fab fa-cc-visa"></i>
+                <i class="fab fa-cc-mastercard"></i>
+                <i class="fas fa-lock" title="Paiement Sécurisé"></i>
+            </div>
+        </div>
+    </footer>
 
-    <div class="footer-bottom">
-        <div class="copyright">
-            &copy; 2026 ABAGH PROOO. Tous droits réservés.
-        </div>
-        <div class="payment-icons">
-            <i class="fas fa-money-bill-wave" title="Paiement à la livraison"></i>
-            <i class="fab fa-cc-visa"></i>
-            <i class="fab fa-cc-mastercard"></i>
-            <i class="fas fa-lock" title="Paiement Sécurisé"></i>
-        </div>
-    </div>
-</footer>
     <script src="script.js"></script>
 </body>
 </html>
