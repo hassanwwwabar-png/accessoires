@@ -206,11 +206,16 @@ app.get('/api/stats', async (req, res) => {
 });
 
 // G. جدول المستخدمين
+// G. جدول المستخدمين (بدون حدود قصوى) ✅
 app.get('/api/stats/users', async (req, res) => {
-    const users = await User.find().sort({ interestScore: -1 }).limit(100);
-    res.json(users);
+    try {
+        // 🔥 التعديل: حذفنا .limit(100) ليظهر لك كل الزوار (195 أو 1000 أو غيره)
+        const users = await User.find().sort({ interestScore: -1 });
+        res.json(users);
+    } catch (error) {
+        res.status(500).json({ error: "DB Error" });
+    }
 });
-
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🤖 Server running on port ${PORT}`));
 
