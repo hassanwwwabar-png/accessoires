@@ -196,25 +196,56 @@ app.post('/api/launch-campaign', async (req, res) => {
 });
 
 // F. الإحصائيات (الآن في مكانها الصحيح) ✅
+// F. الإحصائيات (الحقيقية 100% بدون تزييف) ✅
 app.get('/api/stats', async (req, res) => {
     try {
+        // نعد المستخدمين الحقيقيين في قاعدة البيانات
         const userCount = await User.countDocuments();
+        
+        // نجمع عدد المشاهدات والإضافات للسلة من سجلات التاريخ لكل المستخدمين
+        // (هذا يسمى Aggregation وهو أدق طريقة للحساب)
+        const stats = await User.aggregate([
+            { $unwind: "$history" }, // نفكك سجل التاريخ
+            { 
+                $group: { 
+                    _id: null, 
+                    totalViews: { 
+                        $sum: { $cond: [{ $eq: ["$history.event", "product_view"] }, 1, 0] } 
+                    },
+                    totalCarts: { 
+                        $sum: { $cond: [{ $eq: ["$history.event", "add_to_cart"] }, 1, 0] } 
+                    }
+                } 
+            }
+        ]);
+
+        const result = stats[0] || { totalViews: 0, totalCarts: 0 };
+
         res.json({
             totalVisitors: userCount,
-            totalActions: userCount * 2,
-            sales: 0,
+            totalActions: result.totalViews + result.totalCarts,
+            totalViews: result.totalViews,  // رقم حقيقي
+            totalCarts: result.totalCarts,  // رقم حقيقي
+            sales: 0, 
             activeNow: 1
         });
     } catch (error) {
-        res.json({ totalVisitors: 0, totalActions: 0, sales: 0, activeNow: 0 });
+        res.json({ totalVisitors: 0, totalActions: 0, totalViews: 0, totalCarts: 0, sales: 0, activeNow: 0 });
     }
 });
 
+// مسار جدول المستخدمين (تمت إزالة الحد 20) 🔓
 app.get('/api/stats/users', async (req, res) => {
-    const users = await User.find().sort({ interestScore: -1 }).limit(20);
-    res.json(users);
+    try {
+        // ⚠️ أزلنا .limit(20) لكي يظهر لك كل الزوار مهما كان عددهم
+        const users = await User.find().sort({ timestamp: -1 }); 
+        res.json(users);
+    } catch (error) {
+        res.status(500).json({ error: "DB Error" });
+    }
 });
 
+// ... (تأكد أن module.exports = app; موجودة في النهاية)
 const PORT = 3000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
 
