@@ -105,7 +105,8 @@ app.get('/api/optimize-ads', async (req, res) => {
     try {
         const accessToken = process.env.FB_ACCESS_TOKEN;
         // إصلاح ذكي للـ ID: يضيف act_ لو كانت ناقصة
-        let accountId = process.env.FB_ACCOUNT_ID;
+        // ✅ التعديل: إذا لم تجد المتغير، استخدم هذا الرقم مباشرة
+let accountId = process.env.FB_ACCOUNT_ID || "act_2587718718162961";
         if (accountId && !accountId.startsWith('act_')) {
             accountId = `act_${accountId}`;
         }
