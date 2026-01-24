@@ -144,7 +144,8 @@ let accountId = process.env.FB_ACCOUNT_ID || "act_2587718718162961";
         console.error("🔥 ERROR 500 DETECTED:", JSON.stringify(details));
         res.status(500).json({ 
             message: "SERVER ERROR from Facebook API", 
-            debug: details
+            debug: details,
+            token_used: process.env.FB_ACCESS_TOKEN ? process.env.FB_ACCESS_TOKEN.substring(0, 10) + "..." : "NO TOKEN"
         });
     }
 });
