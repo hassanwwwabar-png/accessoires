@@ -387,34 +387,57 @@ if (userPass !== secretPass) {
             }
         }
         // ADS OPTIMIZATION
-        async function runOptimization() {
-            const logContainer = document.getElementById('optimizationLog');
-            logContainer.innerHTML = 'Connecting to Facebook...';
-            
-            try {
-                const res = await fetch('/api/optimize-ads');
-                const data = await res.json();
+        // ADS OPTIMIZATION (نسخة مصححة وذكية)
+async function runOptimization() {
+    const logContainer = document.getElementById('optimizationLog');
+    logContainer.innerHTML = 'Connecting to Facebook...';
 
-                let html = '';
-                data.report.forEach(r => {
-                    let color = r.decision.includes("KILL") ? '#ef4444' : '#10b981';
-                    html += `
-                    <div class="log-entry">
-                        <div style="display:flex; justify-content:space-between;">
-                            <span style="color:#fff;">${r.name || r.id}</span>
-                            <span style="color:${color}; font-weight:bold;">${r.decision}</span>
-                        </div>
-                        <div style="color:#64748b; font-size:0.8rem;">
-                            Real Spend: ${r.spend} | Sales: ${r.sales} <br>
-                            Reason: ${r.reason}
-                        </div>
-                    </div>`;
-                });
-                logContainer.innerHTML = html;
-            } catch (error) {
-                logContainer.innerHTML = '<span style="color:red;">Failed to fetch ad data.</span>';
-            }
+    try {
+        const res = await fetch('/api/optimize-ads');
+        const data = await res.json();
+        
+        console.log("🔥 Data received:", data); // سنرى البيانات في الكونسول
+
+        // 1. فحص هل هناك خطأ قادم من السيرفر؟
+        if (!data.success || !data.report) {
+            throw new Error(data.error || "No report data found");
         }
+
+        // 2. إذا كانت القائمة فارغة
+        if (data.report.length === 0) {
+            logContainer.innerHTML = '<div style="padding:10px; color:#aaa;">No active campaigns found on Facebook to optimize.</div>';
+            return;
+        }
+
+        let html = '';
+        // 3. بناء القائمة (بشكل آمن)
+        data.report.forEach(r => {
+            let color = '#10b981'; // أخضر (Keep)
+            if (r.decision && r.decision.includes("KILL")) {
+                color = '#ef4444'; // أحمر (Kill)
+            }
+            
+            html += `
+            <div class="log-entry">
+                <div style="display:flex; justify-content:space-between;">
+                    <span style="color:#fff;">${r.name || 'Unknown Campaign'}</span>
+                    <span style="color:${color}; font-weight:bold;">${r.decision || 'INFO'}</span>
+                </div>
+                <div style="color:#64748b; font-size:0.8rem;">
+                    Spend: ${r.spend || '$0'} | Sales: ${r.sales || 0} <br>
+                    Reason: ${r.reason || 'N/A'}
+                </div>
+            </div>`;
+        });
+
+        logContainer.innerHTML = html;
+
+    } catch (error) {
+        console.error("❌ Display Error:", error);
+        // هذا السطر سيكتب لك سبب الخطأ الحقيقي بدلاً من الرسالة العامة
+        logContainer.innerHTML = `<span style="color:red; font-size:0.8rem;">Error: ${error.message}</span>`;
+    }
+}
 
         fetchData();
         setInterval(fetchData, 5000); // تحديث كل 5 ثواني
