@@ -111,8 +111,17 @@ app.post('/api/generate-ad', async (req, res) => {
 app.get('/api/optimize-ads', async (req, res) => {
     try {
         const accessToken = process.env.FB_ACCESS_TOKEN;
-        let accountId = process.env.FB_ACCOUNT_ID; 
-        if (accountId && !accountId.startsWith('act_')) accountId = `act_${accountId}`;
+    // ✅ التعديل: إذا لم تجد المتغير، استخدم هذا الرقم مباشرة
+let accountId = process.env.FB_ACCOUNT_ID || "act_2587718718162961"; 
+
+if (accountId && !accountId.startsWith('act_')) {
+    accountId = `act_${accountId}`;
+}
+
+// حماية إضافية: لو التوكن غير موجود، لا تكمل الطلب لتتجنب الخطأ 400
+if (!process.env.FB_ACCESS_TOKEN) {
+    throw new Error("Missing FB_ACCESS_TOKEN in Vercel Variables");
+}
 
         const url = `https://graph.facebook.com/v19.0/${accountId}/campaigns`;
         const fbRes = await axios.get(url, {
